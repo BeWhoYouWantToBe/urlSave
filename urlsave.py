@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+import pymysql
 import requests
 from bs4 import BeautifulSoup
 from multiprocessing.dummy import Pool 
@@ -66,16 +67,33 @@ def get_urls(keyword):
             page += 1
 
 
-def save_urls(urls):
+def save2txt(urls):
     with open('urls.txt','w') as f:
         for url in urls:
             f.write(url+'\n')
 
+def save2mysql(keyword,urls):
+    conn = pymysql.connect(host='127.0.0.1',user='root',passwd=None,db='spider') 
+    cur = conn.cursor()
+    for url in urls:
+        try:
+            k = '"' + keyword +'"'
+            u = '"' + url + '"'
+            sql = "insert into injection_point values ({},{})".format(k,u)
+            cur.execute(sql)
+            conn.commit()
+        except:
+            print("插入{}失败".format(url))
+    cur.close()
+    conn.close()
+
+
 
 def main():
-    keyword = ''
+    keyword = 'inurl:tw%2bphp?item_id'
     urls = get_urls(keyword)
-    save_urls(urls)
+    save2txt(urls)
+    save2mysql(keyword,urls)
     print('已保存{}个urls'.format(len(urls)))
 
 
